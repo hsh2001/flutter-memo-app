@@ -13,16 +13,20 @@ class Button extends StatelessWidget {
     @required this.onTap,
   }) : super();
 
+  Widget _designedButton() {
+    return Container(
+      color: color,
+      padding: EdgeInsets.symmetric(vertical: 30, horizontal: 60),
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: Text(text),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        color: color,
-        padding: EdgeInsets.symmetric(vertical: 30, horizontal: 60),
-        margin: EdgeInsets.symmetric(vertical: 10),
-        child: Text(text),
-      ),
+      child: _designedButton(),
     );
   }
 }
@@ -76,29 +80,58 @@ class _EditMemoState extends State<EditMemo> {
     widget.close();
   }
 
-  Future<void> confirmAndDelete() async {
-    return showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('잠시만요!'),
-          content: Text('정말로 메모를 삭제하시겠습니까?'),
-          actions: <Widget>[
-            TextButton(
-                child: Text('아니오'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                }),
-            TextButton(
-                child: Text('네'),
-                onPressed: () {
-                  delete();
-                  Navigator.of(context).pop();
-                }),
-          ],
-        );
+  Widget _alertDialogButton(String text, Function onPress) {
+    return TextButton(
+      child: Text(text),
+      onPressed: () {
+        Navigator.of(context).pop();
+        onPress();
       },
     );
+  }
+
+  Widget _alertDialog(context) {
+    return AlertDialog(
+      title: Text('잠시만요!'),
+      content: Text('정말로 메모를 삭제하시겠습니까?'),
+      actions: <Widget>[
+        _alertDialogButton('아니오', () {}),
+        _alertDialogButton('네', delete),
+      ],
+    );
+  }
+
+  Future<void> _confirmAndDelete() async {
+    return showDialog<void>(
+      context: context,
+      builder: _alertDialog,
+    );
+  }
+
+  Widget _buttons() {
+    return Buttons(
+      submit: submit,
+      delete: _confirmAndDelete,
+      close: widget.close,
+    );
+  }
+
+  Widget _futureBuilder({String initialTitle, String initialBody}) {
+    return Column(children: [
+      TextFormField(
+        decoration: InputDecoration(hintText: '제목'),
+        onChanged: (newTitle) => title = newTitle,
+        initialValue: initialTitle,
+      ),
+      TextFormField(
+        decoration: InputDecoration(hintText: '내용'),
+        onChanged: (newBody) => body = newBody,
+        initialValue: initialBody,
+        minLines: 3,
+        maxLines: 20,
+      ),
+      _buttons(),
+    ]);
   }
 
   @override
@@ -107,29 +140,12 @@ class _EditMemoState extends State<EditMemo> {
       future: MemoDB().getOne(widget.target),
       builder: (context, shapshot) {
         final data = shapshot.data as Memo;
-
-        if (data == null) {
-          return Container();
-        }
-
-        title = data.title;
-        body = data.body;
-
-        return Column(children: [
-          TextFormField(
-            decoration: InputDecoration(hintText: '제목'),
-            onChanged: (newTitle) => title = newTitle,
-            initialValue: title,
-          ),
-          TextFormField(
-            decoration: InputDecoration(hintText: '내용'),
-            onChanged: (newBody) => body = newBody,
-            initialValue: body,
-            minLines: 3,
-            maxLines: 20,
-          ),
-          Buttons(submit: submit, delete: confirmAndDelete, close: widget.close)
-        ]);
+        return data == null
+            ? Container()
+            : _futureBuilder(
+                initialTitle: data.title,
+                initialBody: data.body,
+              );
       },
     );
   }

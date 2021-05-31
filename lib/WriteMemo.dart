@@ -107,7 +107,10 @@ class WriteMemoForm extends StatelessWidget {
 class WriteMemo extends StatefulWidget {
   final Function close;
 
-  WriteMemo({Key key, @required this.close}) : super(key: key);
+  WriteMemo({
+    Key key,
+    @required this.close,
+  }) : super(key: key);
 
   @override
   _WriteMemoState createState() => _WriteMemoState();
@@ -140,13 +143,8 @@ class _WriteMemoState extends State<WriteMemo> {
     widget.close();
   }
 
-  void setTitle(value) {
-    setState(() => title = value);
-  }
-
-  void setBody(value) {
-    setState(() => body = value);
-  }
+  void setTitle(value) => setState(() => title = value);
+  void setBody(value) => setState(() => body = value);
 
   @override
   Widget build(BuildContext context) {

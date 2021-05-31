@@ -5,8 +5,9 @@ import 'package:meta/meta.dart';
 Future<Database> getDB() async {
   return openDatabase(
     join(await getDatabasesPath(), 'doggie_database.db'),
-    onCreate: (db, version) {
-      return db.execute(
+    version: 1,
+    onCreate: (db, version) async {
+      await db.execute(
         '''
           CREATE TABLE memo(
             id INTEGER PRIMARY KEY, 
@@ -16,7 +17,6 @@ Future<Database> getDB() async {
         ''',
       );
     },
-    version: 1,
   );
 }
 
@@ -26,14 +26,10 @@ class Memo {
   String body;
 
   Memo({
-    int id,
-    @required String title,
-    @required String body,
-  }) {
-    this.id = id;
-    this.title = title;
-    this.body = body;
-  }
+    this.id,
+    @required this.title,
+    @required this.body,
+  });
 
   Map<String, dynamic> toMap() {
     return {'id': id, 'title': title, 'body': body};
@@ -41,6 +37,7 @@ class Memo {
 }
 
 class MemoDB {
+  static const tableName = 'memo';
   Future<Database> _db;
 
   MemoDB() {
@@ -49,12 +46,12 @@ class MemoDB {
 
   Future<void> addMemo(Memo memo) async {
     final db = await _db;
-    await db.insert('memo', memo.toMap());
+    await db.insert(tableName, memo.toMap());
   }
 
   Future<List<Memo>> getMemos() async {
     final db = await _db;
-    final maps = await db.query('memo');
+    final maps = await db.query(tableName);
     return List.generate(
       maps.length,
       (index) => Memo(
@@ -68,7 +65,7 @@ class MemoDB {
   Future<Memo> getOne(int id) async {
     final db = await _db;
     final maps = await db.query(
-      'memo',
+      tableName,
       where: 'id = ?',
       whereArgs: [id],
       limit: 1,
@@ -85,7 +82,7 @@ class MemoDB {
     final db = await _db;
     newMemo.id = id;
     await db.update(
-      'memo',
+      tableName,
       newMemo.toMap(),
       where: 'id = ?',
       whereArgs: [id],
@@ -94,6 +91,10 @@ class MemoDB {
 
   Future<void> delete(id) async {
     final db = await _db;
-    await db.delete('memo', where: 'id = ?', whereArgs: [id]);
+    await db.delete(
+      tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }

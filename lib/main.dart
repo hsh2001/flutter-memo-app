@@ -15,25 +15,23 @@ class _MyAppState extends State<MyApp> {
   bool isWriteMode = false;
   int editTarget = 0;
 
-  void startWriteMode() {
-    setState(() => isWriteMode = true);
-  }
-
-  void endWriteMode() {
-    setState(() => isWriteMode = false);
-  }
-
-  void setEditTarget(int id) {
-    setState(() => editTarget = id);
-  }
-
-  void endEditMode() {
-    setState(() => editTarget = 0);
-  }
+  void startWriteMode() => setState(() => isWriteMode = true);
+  void endWriteMode() => setState(() => isWriteMode = false);
+  void setEditTarget(int id) => setState(() => editTarget = id);
+  void endEditMode() => setState(() => editTarget = 0);
 
   void startListMode() {
     endEditMode();
     endWriteMode();
+  }
+
+  Widget _appBar() {
+    return AppBar(
+      title: GestureDetector(
+        child: const Text('메모장'),
+        onTap: startListMode,
+      ),
+    );
   }
 
   @override
@@ -52,12 +50,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Hello flutter',
       theme: ThemeData(primaryColor: Colors.blue),
       home: Scaffold(
-        appBar: AppBar(
-          title: GestureDetector(
-            child: const Text('메모장'),
-            onTap: startListMode,
-          ),
-        ),
+        appBar: _appBar(),
         body: body,
         floatingActionButton: isWriteMode
             ? null

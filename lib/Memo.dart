@@ -18,24 +18,27 @@ class MemoView extends StatelessWidget {
     @required this.startEdit,
   }) : super(key: key);
 
+  Widget _titleWidget() {
+    return Container(
+      padding: EdgeInsets.all(5),
+      child: Text(memo.title),
+      decoration: titleBoxDecoration,
+    );
+  }
+
+  Widget _bodyWidget() {
+    return Container(
+      child: Text(' ${memo.body}', overflow: TextOverflow.clip),
+      decoration: bodyBoxDecoration,
+    );
+  }
+
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: GestureDetector(
         onTap: startEdit,
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(5),
-              child: Text(memo.title),
-              decoration: titleBoxDecoration,
-            ),
-            Container(
-              child: Text(' ${memo.body}', overflow: TextOverflow.clip),
-              decoration: bodyBoxDecoration,
-            ),
-          ],
-        ),
+        child: Row(children: [_titleWidget(), _bodyWidget()]),
       ),
     );
   }
@@ -51,36 +54,41 @@ class MemoList extends StatelessWidget {
     @required this.setEditTarget,
   }) : super(key: key);
 
-  Widget build(BuildContext context) {
-    if (memos.length == 0) {
-      return Center(
-        child: Text('메모가 없어요.'),
-      );
-    }
+  List<Widget> _memoWidgets() {
+    return List<Widget>.generate(
+      memos.length,
+      (index) => MemoView(
+        memo: memos[index],
+        startEdit: () => setEditTarget(memos[index].id),
+      ),
+    );
+  }
 
+  Widget _container({List<Widget> children}) {
     return SingleChildScrollView(
       child: SafeArea(
         child: Container(
           margin: EdgeInsets.symmetric(vertical: 32),
-          child: Column(
-            children: List<Widget>.generate(
-              memos.length,
-              (index) => MemoView(
-                memo: memos[index],
-                startEdit: () => setEditTarget(memos[index].id),
-              ),
-            ),
-          ),
+          child: Column(children: children),
         ),
       ),
     );
+  }
+
+  Widget build(BuildContext context) {
+    return memos.length > 0
+        ? _container(children: _memoWidgets())
+        : Center(child: Text('메모가 없어요.'));
   }
 }
 
 class MemoLoader extends StatelessWidget {
   final Function setEditTarget;
 
-  MemoLoader({Key key, @required this.setEditTarget}) : super(key: key);
+  MemoLoader({
+    Key key,
+    @required this.setEditTarget,
+  }) : super(key: key);
 
   Widget build(BuildContext context) {
     return FutureBuilder(
