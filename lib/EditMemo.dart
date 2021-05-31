@@ -2,6 +2,31 @@ import 'package:flutter/material.dart';
 
 import 'db.dart';
 
+class Button extends StatelessWidget {
+  final Color color;
+  final String text;
+  final Function onTap;
+
+  Button({
+    @required this.color,
+    @required this.text,
+    @required this.onTap,
+  }) : super();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        color: color,
+        padding: EdgeInsets.symmetric(vertical: 30, horizontal: 60),
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: Text(text),
+      ),
+    );
+  }
+}
+
 class Buttons extends StatelessWidget {
   final Function submit;
   final Function close;
@@ -16,9 +41,9 @@ class Buttons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      GestureDetector(onTap: submit, child: Text('수정')),
-      GestureDetector(onTap: delete, child: Text('삭제')),
-      GestureDetector(onTap: close, child: Text('취소')),
+      Button(onTap: submit, text: '수정', color: Colors.blueAccent),
+      Button(onTap: delete, text: '삭제', color: Colors.red),
+      Button(onTap: close, text: '취소', color: Colors.grey),
     ]);
   }
 }
@@ -51,6 +76,31 @@ class _EditMemoState extends State<EditMemo> {
     widget.close();
   }
 
+  Future<void> confirmAndDelete() async {
+    return showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('잠시만요!'),
+          content: Text('정말로 메모를 삭제하시겠습니까?'),
+          actions: <Widget>[
+            TextButton(
+                child: Text('아니오'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
+            TextButton(
+                child: Text('네'),
+                onPressed: () {
+                  delete();
+                  Navigator.of(context).pop();
+                }),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -78,7 +128,7 @@ class _EditMemoState extends State<EditMemo> {
             minLines: 3,
             maxLines: 20,
           ),
-          Buttons(submit: submit, delete: delete, close: widget.close)
+          Buttons(submit: submit, delete: confirmAndDelete, close: widget.close)
         ]);
       },
     );
